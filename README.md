@@ -127,8 +127,9 @@ uv venv <env-name> --python 3.11
 source <env-name>/bin/activate
 #one of
 uv pip install scprint2
-# OR uv pip install scprint2[dev] # for the dev dependencies (building etc..) OR
-# OR uv pip install scprint2[flash] # to use flashattention2 with triton: only if you have a compatible gpu (e.g. not available for apple GPUs for now, see https://github.com/triton-lang/triton?tab=readme-ov-file#compatibility)
+# OR uv pip install scprint2[dev] # for the dev dependencies (building etc..)
+# OR uv pip install scprint2[flash] # to use multiple flash attention functionalities written only in triton
+# : only if you have a compatible gpu (e.g. not available for apple GPUs for now, see https://github.com/triton-lang/triton?tab=readme-ov-file#compatibility), it is not useful if you just run inference using the main scPRINT, scPRINT-2 models
 #OR pip install scprint2[dev,flash]
 
 lamin init --storage ./testdb --name testdb --modules bionty
@@ -483,6 +484,14 @@ model = scPRINT2.load_from_checkpoint(
     precpt_gene_emb=None,
     gene_pos_file=None,
 )
+
+# to remove gene embeddings that scPRINT-2 was trained with but that are not found in the lamin ontology anymore
+missing = set(model.genes) - set(load_genes(model.organisms).index)
+if len(missing) > 0:
+    print(
+        "Warning: some genes missmatch exist between model and ontology: solving...",
+    )
+    model._rm_genes(missing)
 ```
 
 But if you want to, you can also recreate the gene embedding file through
