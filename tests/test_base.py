@@ -34,13 +34,7 @@ def test_base():
         # diseases=None,
         # dev_stages=None,
     )
-    try:
-        _adding_scbasecamp_genes()
-    except OperationalError as err:
-        # External Lamin instance schemas can lag behind current bionty models.
-        # Keep the test functional when that remote dependency is inconsistent.
-        if "bionty_organism.abbr" not in str(err):
-            raise
+    _adding_scbasecamp_genes()
     filepath = os.path.join(os.path.dirname(__file__), "test.h5ad")
     ckpt_path = os.path.join(os.path.dirname(__file__), "small-v2.ckpt")
     if not os.path.exists(ckpt_path):
@@ -99,7 +93,7 @@ def test_base():
         keep_all_labels_pred=False,
         use_knn=False,
     )
-    adata_emb, metrics = cell_embedder(model, adata[:10, :])
+    adata_emb, metrics = cell_embedder(model, adata[:40, :])
     assert "scprint_emb" in adata_emb.obsm, "Cell embedding failed"
     assert (
         np.isnan(adata_emb.obsm["scprint_emb"]).sum() == 0
@@ -107,7 +101,9 @@ def test_base():
     assert any(
         col.startswith("pred_") for col in adata_emb.obs.columns
     ), "Classification failed"
-
+    assert (
+        metrics["cell_type_ontology_term_id_accuracy"] > 0.13
+    ), "Classification accuracy is too low"
     # GRN inference
     grn_inferer = GNInfer(
         layer=[0, 1],
