@@ -260,20 +260,20 @@ $ scprint2 fit/train/predict/test/denoise/embed/gninfer/impute/gene_emb/generate
 To denoise a dataset:
 
 ```bash
-$ scprint2 denoise --adata my_human_anndata.h5ad --ckpt_path v2-medium.ckpt --species "NCBITaxon:9606" --output_filename denoised.h5ad
+$ scprint2 denoise --adata my_human_anndata.h5ad --ckpt_path small-v2.ckpt --species "NCBITaxon:9606" --output_filename denoised.h5ad
 ```
 
 to do embedding and classification on a dataset: (the current version implies
 doing a PCA and Umap so it might need a lot of RAM if run as is)
 
 ```bash
-$ scprint2 embed --adata my_human_anndata.h5ad --ckpt_path v2-medium.ckpt --species "NCBITaxon:9606" --output_filename embedded.h5ad
+$ scprint2 embed --adata my_human_anndata.h5ad --ckpt_path small-v2.ckpt --species "NCBITaxon:9606" --output_filename embedded.h5ad
 ```
 
 To do gene network inference on a dataset:
 
 ```bash
-$ scprint2 gninfer --adata my_human_anndata.h5ad --ckpt_path v2-medium.ckpt --species "NCBITaxon:9606" --cell_type 'cell_type_name_from-cell_type-obs_col' --output_filename grn.h5ad
+$ scprint2 gninfer --adata my_human_anndata.h5ad --ckpt_path small-v2.ckpt --species "NCBITaxon:9606" --cell_type 'cell_type_name_from-cell_type-obs_col' --output_filename grn.h5ad
 ```
 
 To re-train scPRINT-2 from scratch or from a checkpoint:
