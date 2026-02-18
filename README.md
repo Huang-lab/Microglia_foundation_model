@@ -173,11 +173,12 @@ _adding_scbasecamp_genes()  #to add when using scPRINT-2
 ```
 
 It will also download the default checkpoint of a pretrain scprint2 model from
-[our hugging face page](https://huggingface.co/jkobject/scPRINT-2/). But you can
-use other ones if you prefer:
+[our hugging face page](https://huggingface.co/jkobject/scPRINT/). But you can
+use other ones if you prefer. 
+Both scPRINT and scPRINT-2 checkpoints are for now stored in the scPRINT hugging face page:
 
 ```bash
-$ hf download jkobject/scPRINT v2-medium.ckpt --local-dir .
+$ hf download jkobject/scPRINT small-v2.ckpt --local-dir .
 ```
 
 A notebook for setting-up scPRINT-2 and lamin is also available
@@ -499,7 +500,7 @@ But if you want to, you can also recreate the gene embedding file through
 functions, and it should recreate the file itself.
 
 The file itself is also available on
-[hugging face](https://huggingface.co/jkobject/scPRINT-2/tree/main)
+[hugging face](https://huggingface.co/jkobject/scPRINT/tree/main)
 
 /!\ Please understand that what I mean by gene embedding is the immutable input
 gene embeddings encoding the gene name. scPRINT-2 directly takes raw counts as
