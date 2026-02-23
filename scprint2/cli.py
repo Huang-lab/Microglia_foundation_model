@@ -102,6 +102,7 @@ class MyCLI(LightningCLI):
             "setup everything for scprint2. only the default behavior is supported."
         )
         parser = self.init_parser(description=description)
+        parser.add_argument("--seed_everything", type=int, default=0)
         self._subcommand_parsers["easy_setup"] = parser
         parser_subcommands.add_subcommand("easy_setup", parser, help=description)
         for subcommand in TASKS:
