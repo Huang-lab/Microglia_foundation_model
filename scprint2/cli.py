@@ -347,6 +347,14 @@ class MyCLI(LightningCLI):
             else:
                 raise ValueError(f"Unknown subcommand: {subcommand}")
 
+    def _parse_ckpt_path(self) -> None:
+        """Skip ckpt hyperparameter parsing for custom task subcommands."""
+        subcommand = self.config.get("subcommand")
+        task_names = {name for name, _ in TASKS}
+        if subcommand in task_names or subcommand == "easy_setup":
+            return
+        return super()._parse_ckpt_path()
+
     def before_instantiate_classes(self):
         for k, v in self.config.items():
             if "set_float32_matmul_precision" in k:
