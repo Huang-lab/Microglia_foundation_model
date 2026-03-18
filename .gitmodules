@@ -13,3 +13,6 @@ url = https://github.com/jkobject/scGPT
 [submodule "tools/Geneformer"]
 path = tools/Geneformer
 url = https://huggingface.co/ctheodoris/Geneformer/
+[submodule "tools/dca"]
+	path = tools/dca
+	url = https://github.com/jkobject/dca.git
