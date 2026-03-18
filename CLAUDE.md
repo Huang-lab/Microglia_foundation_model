@@ -185,8 +185,8 @@ trainer.fit(model, datamodule=datamodule)
 ```bash
 git clone https://github.com/cantinilab/scPRINT-2
 cd scPRINT-2
-uv venv env --python 3.11
-source env/bin/activate
+uv venv .venv --python 3.11
+source .venv/bin/activate
 uv pip install -e ".[dev]"
 
 # Required: init lamin
@@ -201,6 +201,13 @@ pytest tests/test_base.py -v
 ```
 
 Note: tests require lamindb setup, a valid `tests/test.h5ad`, and will download `small-v2.ckpt` from HuggingFace on first run. Only one test function (`test_base`) covers denoising, embedding, GRN, and training — no unit tests for individual components.
+
+**Test run history (VPS — no GPU):**
+- **2026-03-16:** ✅ All tests passed (1 passed, 41 warnings in 871.86s / ~14.5 minutes)
+  - CPU-only: test took ~15min for small dataset (40 cells, 300 genes)
+  - Warnings mostly from deprecated dependencies (supabase, distutils, performer_pytorch)
+  - Test confirms: denoising improves over noisy baseline, embeddings generated, GRN extracted, training loss decreases
+  - GPU would be orders of magnitude faster — CPU inference is functional but slow
 
 ---
 
