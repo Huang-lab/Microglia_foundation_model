@@ -1925,14 +1925,14 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
                 gathered_cell_embs_list.append(gathered_emb)
         else:
             gathered_cell_embs_list = cell_embs
-        # TASK 4. contrastive cell embedding
+        # TASK 8. elastic cell similarity
         if self.ecs_scale > 0:
             loss_ecs = loss.ecs(
                 gathered_cell_embs_list[0], ecs_threshold=self.ecs_threshold
             )
             total_loss += self.ecs_scale * loss_ecs
             losses.update({"ecs": loss_ecs})
-        # TASK 5. elastic cell similarity
+        # TASK 9. contrastive cell embedding
         if self.cce_scale > 0 and len(gathered_cell_embs_list) > 1:
             loss_cce = 0
             n_pairs = 0
@@ -1944,12 +1944,11 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
                     n_pairs += 1
             avg_loss_cce = loss_cce / max(n_pairs, 1)
             total_loss += avg_loss_cce * self.cce_scale
-            # TASK 3b. contrastive graph embedding
             losses.update({"cce": avg_loss_cce})
 
-        # TASK 8. KO profile prediction
+        # TASK 10. KO profile prediction
         # if we have that information
-        # TASK 9. PDgrapher-drug-like perturbation prediction (L1000?)
+        # TASK 11. PDgrapher-drug-like perturbation prediction (L1000?)
         return total_loss, losses
 
     def _compute_loss(
