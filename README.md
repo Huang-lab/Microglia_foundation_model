@@ -527,8 +527,12 @@ pip install -e benGRN[dev]
 
 ### Reproducibility
 
-**To reproduce the paper please use the version / tag `1.6.4` and you will have
-to git clone the repo to have access to all the pre-training functionalities!**
+1. to reproduce figure 1 use the data in https://docs.google.com/spreadsheets/d/1T2MPAjXmpwosZeP0tK_be1KU94I4JWt-u2Bo3HaysE8/ or https://wandb.ai/ml4ig/scprint_ablation/reports/scPRINT-2-additive-benchmark--VmlldzoxNTIyOTYwNA?accessToken=0mzwwu64py309mds6zzbgcxllrgcdnd10laivhs3ykh9pqmbs0wxutcu60py2bld  
+2. to reproduce figure 2 use the notebooks: `figures/nice_umap.ipynb`, and in scdataloader: `figures/scprint_v2_paper.ipynb`,
+3. to reproduce figure 3 use the notebooks: `/notebooks/sPRINT-2-repro-notebooks/smart_seq_class.ipynb`, `/notebooks/sPRINT-2-repro-notebooks/unknown_species_classification.ipynb`, `/notebooks/sPRINT-2-repro-notebooks/cross-species-embbedding.ipynb`, `/notebooks/sPRINT-2-repro-notebooks/fine_tuning_cross_species_emb_mmd.ipynb`, `figures/plot_results.ipynb`
+4. to reproduce figure 4 use the notebooks: `/notebooks/sPRINT-2-repro-notebooks/xenium_imputation.ipynb`, `/notebooks/sPRINT-2-repro-notebooks/denoising_V3.ipynb`
+5. to reproduce figure 5 use the notebooks: `/notebooks/sPRINT-2-repro-notebooks/batch_corr_op ft.ipynb`, `/notebooks/sPRINT-2-repro-notebooks/batch_corr_op v1.ipynb`, `/notebooks/sPRINT-2-repro-notebooks/batch_corr_op.ipynb`, `/notebooks/sPRINT-2-repro-notebooks/cross-species-embbedding.ipynb`, `/notebooks/sPRINT-2-repro-notebooks/fine_tuning_cross_species_emb_mmd.ipynb`, `/notebooks/sPRINT-2-repro-notebooks/ft_embedded_task3.ipynb`, `/notebooks/sPRINT-2-repro-notebooks/generative_modelling.ipynb`, `figures/plot_results.ipynb`
+6. to reproduce figure 6 use the notebooks: `/notebooks/sPRINT-2-repro-notebooks/colabfold_with_precomputed_humanmsa.ipynb`, `/notebooks/sPRINT-2-repro-notebooks/gene_networks.ipynb`, `/notebooks/sPRINT-2-repro-notebooks/gene_network_cross_species_analysis.ipynb`, `/notebooks/sPRINT-2-repro-notebooks/output_embeddings.ipynb`
 
 ⚠️ When re-training scPRINT-2 from scratch, by default, every N epoch, the
 `test()` function will be called `. It is using a predownloadedtest datasets
