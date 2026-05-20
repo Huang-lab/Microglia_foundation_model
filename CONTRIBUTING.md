@@ -1,24 +1,82 @@
 # Remaining work to be done for scPRINT-2
 
-- train scPRINT-large
-- debugging and re-testing the attention bias matrices
-- make criss-cross attention work for gene network extraction
-- see if some of our issues with making the model work without gene locations have to do with ESM3 vs ESM2’s gene embeddings
-- encode dna-level information and non-coding genes too using DNA-LM
-- predict kinetics too (add a second MLP on top of the output gene embeddings)
-- make it work on bulk RNAseq (fine-tuning on TCGA/GTEX/DepMap)
+## Usability
 
-## fine-tuning example notebooks 
+- have a one line installer that manages the different environments people could
+  use
+  - [x] test on most GPUs
+  - [x] test on CPUs
+  - [ ] one line installer that also downloads the model, setup lamindb etc..
+        (almost)
+- have easy to use notebooks in the documentation website that explain simply
+  and reproducibly the 13 different currently implemented capabilities of
+  scprint2 by simplicity:
+  - [ ] classification
+  - [ ] classification+finetuning
+  - [ ] denoising
+  - [ ] batch correction
+  - [ ] batch correction+finetuning
+  - [ ] counterfactual reasoning
+  - [ ] gene network inference
+  - [ ] imputation on xenium
+  - [ ] classification and embedding on xenium
+  - [ ] cross species integration and classification and finetuning
 
-- create a fine tuning class and notebook for classification from embeddings on additional labels (e.g. depmap /tcga diseases)
-- on new classes entirely (predict TCGA patient survival curves from cell embeddings too)
-- notebook for finetuning to predict genetic perturbations
-- notebook for finetuning to predict molecular perturbations
+## Open Questions
 
-## long term:
+- what about only learning from contrastive loss (read the sccontrast paper
+  first)
+- apply the ECS at each class level embeddings !!!!!
+- Use only fsq
 
-- make it work on spatial neighbors too (and add spatial information to the loss)
-- make it a real diffusion denoising process (hard to do on non gaussian distributions)
+## Novel capabilities
+
+- fine tuning class and notebook for classification from embeddings on
+  additional labels (e.g. depmap /tcga diseases) [3 weeks]
+- on new classes entirely (predict TCGA patient survival curves from cell
+  embeddings too) [1 month]
+- make it work on bulk RNAseq (fine-tuning on TCGA/GTEX/DepMap) [2 weeks]
+- use 2nd GNN to work on multiple cells at once from a regular dataset and from
+  spatial datasets [2 months]
+- fine tuning on only very high quality / depth cells / long context (see if the
+  model improves)
+
+## Better model
+
+- test MOE
+- predict kinetics too (add a second MLP on top of the gene embeddings) [1 week]
+- Make a final V2 version with criss-cross attention and all other features
+  (200M parameters and make it converge
+- mix of bag-of-gene models and scFM
+  [What about also predicting the gene name?? ](https://www.notion.so/What-about-also-predicting-the-gene-name-157f084143c3806ea47ef5afa9ff13f5?pvs=21)where
+  we predict gene embedding with Wasserstein loss
+- real diffusion denoising model (multiple iterations)
+- test Deep Seek’s sparse attention / attention residual
+
+## Perturbation space:
+
+- explore the perturbation datasets
+  - can we find perturbations that have no impact on cell state (might need to
+    compare to average of perturbations)
+  - can we find perturbations that have the same effect? (cell death, growth
+    arrest, …)
+- predict perturbations and pseudo perturbations based on temporal ordering
+  - tahoe-100M chem-bert embedding + pseudo bulk version (group sets of 200
+    cells and predict over
+  - xaira and others with token + lora finetuning + pseudo bulk version
+  - depmap / L1000 / PRISM survivability
+
+## other random ideas
+
+- explicit graph scPRINT.
+  - need temporal training to maximize causality
+  - use a graph transformer with learned base matrix
+  - apply efficient retrieval of submatrix element like I currently have
+  - use triplet-like attention with bias from alphafold model (open fold triton
+    implementation)
+  - apply loss
+- temporal + spatial + perturbation modelling with secondary model
+  - adopt a flow matching framework https://arxiv.org/pdf/2411.00698
 
 # How to develop on this project
 
