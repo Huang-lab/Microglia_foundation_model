@@ -281,3 +281,24 @@ sbatch --ntasks-per-node=1 --gres=gpu:1 --time=100:00:00 --account=xeg@h100 --no
 
 34*100 = 3400 H100 GPU
 ##### Test cheap vs esm2 vs learnt
+##### 34 ESM2 gene embeddings
+model:
+  precpt_gene_emb: ./data/main/gene_embs_esm2/
+
+sbatch ... slurm/submit.sh "--config config/ablation_study.yml --model.precpt_gene_emb ./data/main/gene_embs_esm2/"
+896655
+
+##### 35 no epoch limit (was max_epochs: 21)
+trainer:
+  max_epochs: -1
+
+sbatch ... slurm/submit.sh "--config config/ablation_study.yml --trainer.max_epochs -1"
+896699
+
+##### 36 weighted random sampling restricted to top 200 cells per cluster
+# requires scdataloader commit 6338665 (2026-05-19)
+data:
+  restrict_to_subset: 200
+
+sbatch ... slurm/submit.sh "--config config/ablation_study.yml --data.restrict_to_subset 200"
+896709

@@ -37,6 +37,7 @@ class TrainingMode(Callback):
         name: str = "",
         set_step: Optional[int] = None,
         mask_zeros: bool = False,
+        doplot: bool = True,
     ):
         """
         TrainingMode a callback to set the training specific info to the model.
@@ -75,6 +76,7 @@ class TrainingMode(Callback):
             randsamp (bool): Whether to use random sampling for the noise amount at each training step. Defaults to True.
             vae_kl_warmup_steps (int): Number of warmup steps for the VAE KL loss. Defaults to 20_000.
             mask_zeros (bool): Whether to mask zeros in the expression matrix. Defaults to False.
+            doplot (bool): Whether to plot the training curves. Defaults to True.
         """
         super().__init__()
         self.noise = noise
@@ -108,6 +110,7 @@ class TrainingMode(Callback):
         self.randsamp = randsamp
         self.mask_zeros = mask_zeros
         self.vae_kl_warmup_steps = vae_kl_warmup_steps
+        self.doplot = doplot
 
     def __repr__(self):
         return (
@@ -141,7 +144,8 @@ class TrainingMode(Callback):
             f"set_step={self.set_step}, "
             f"randsamp={self.randsamp}, "
             f"mask_zeros={self.mask_zeros}, "
-            f"vae_kl_warmup_steps={self.vae_kl_warmup_steps})"
+            f"vae_kl_warmup_steps={self.vae_kl_warmup_steps}, "
+            f"doplot={self.doplot})"
         )
 
     def setup(self, trainer, model, stage=None):
@@ -177,4 +181,5 @@ class TrainingMode(Callback):
         model.randsamp = self.randsamp
         model.mask_zeros = self.mask_zeros
         model.vae_kl_warmup_steps = self.vae_kl_warmup_steps
+        model.doplot = self.doplot
         # model.configure_optimizers()

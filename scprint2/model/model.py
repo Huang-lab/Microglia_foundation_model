@@ -63,7 +63,6 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
         compress_class_dim: Optional[Dict[str, int]] = None,
         cell_specific_blocks: bool = False,
         zinb: bool = True,
-        doplot: bool = False,
         splicing_head: bool = False,
         do_adv_cls: bool = False,
         dropout: float = 0.1,
@@ -293,7 +292,7 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
         self.name = ""
         self.set_step = None
         self.lrfinder_steps = 0
-        self.doplot = doplot
+        self.doplot = False
         self.get_attention_layer = None
         self.embs = None
         self.pred_log_adata = True
@@ -2310,8 +2309,6 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
                 if sch is not None:
                     sch.step(self.trainer.callback_metrics["val_loss"])
                 # run the test function on specific dataset
-                doplot = self.doplot
-                self.doplot = True
                 if self.embs is not None:
 
                     self.log_adata(
@@ -2320,7 +2317,6 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
                 if (self.current_epoch + 1) % self.test_every == 0:
                     self.on_test_epoch_end()
                 # Synchronize all processes with a timeout
-                self.doplot = doplot
             if torch.distributed.is_initialized():
                 # Set a timeout that's longer than your test typically takes
                 # Write rank to file for debugging

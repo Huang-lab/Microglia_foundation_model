@@ -19,7 +19,7 @@ trainer:
       init_args:
         project: ${project}
         offline: False
-        save_dir: /pasteur/zeus/projets/p02/ml4ig_hot/Users/jkalfon/ #/lustre/fswork/projects/rech/xeg/uat95fg/ #/pasteur/zeus/projets/p02/ml4ig_hot/Users/jkalfon/ #/data/log/
+        save_dir: /pasteur/helix/scratch/jkalfon/scprint2/wandb_logs/
   callbacks:
     #- class_path: lightning.pytorch.callbacks.StochasticWeightAveraging
     #  init_args:

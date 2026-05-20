@@ -291,26 +291,28 @@ more examples of using the command line are available in the
 ### Example notebooks
 
 1. [get-started](./notebooks/prepare_scprint2.ipynb): how to set things up
-2. [run scPRINT-2 on a new species](/notebooks/scPRINT-2-repro-notebooks/unknown_species_classification.ipynb):
+2. [FIG3: run scPRINT-2 on a new species](/notebooks/scPRINT-2-repro-notebooks/unknown_species_classification.ipynb):
    how to fine-tune scPRINT-2 on a new organism. you will also need to generate
    embeddings and gene locations for your organism, see the FAQ below.
-3. [do gene-network inference with scPRINT-2](/notebooks/scPRINT-2-repro-notebooks/gene_networks.ipynb):
+3. [FIG6: do gene-network inference with scPRINT-2](/notebooks/scPRINT-2-repro-notebooks/gene_networks.ipynb):
    how to use scPRINT-2 to infer gene regulatory networks from your scRNAseq
    data (the first part is about getting ground truth data with benGRN)
-4. [generate cell embeddings and cell label predictions from my data](/notebooks/scprint_inference/):
+4. [FIG3-5: generate cell embeddings and cell label predictions from my data](/notebooks/scprint_inference/):
    how to use scPRINT-2 to generate cell embeddings and predict cell type
-5. [generate gene output embeddings from my gene expressiond data](/notebooks/gene_embeddings/):
+5. [FIG6: generate gene output embeddings from my gene expressiond data](/notebooks/gene_embeddings/):
    how to use scPRINT-2 to generate gene embeddings from your scRNAseq data
-6. [do counterfactual gene expression prediction with scPRINT-2](/notebooks/counterfactual_imputation/):
+6. [FIG5: do counterfactual gene expression prediction with scPRINT-2](/notebooks/counterfactual_imputation/):
    how to use scPRINT-2 to impute gene expression under different conditions
-7. [do denoising with scPRINT-2](/notebooks/denoising/): how to use scPRINT-2 to
+7. [FIG4: do denoising with scPRINT-2](/notebooks/denoising/): how to use scPRINT-2 to
    denoise your scRNAseq data
-8. [do imputation with scPRINT-2 (e.g. on Xenium Panel data)](/notebooks/imputation/):
+8. [FIG4: do imputation with scPRINT-2 (e.g. on Xenium Panel data)](/notebooks/imputation/):
    how to use scPRINT-2 to impute missing genes in your scRNAseq data
-9. [run scPRINT-2 on some Xenium spatial transcriptomics data](/notebooks/xenium_spatial_transcriptomics/):
+9. [FIG4: run scPRINT-2 on some Xenium spatial transcriptomics data](/notebooks/xenium_spatial_transcriptomics/):
    how to use scPRINT-2 to analyse spatial transcriptomics data
-10. [fine-tune scPRINT-2 for cell type classification and/or batch correction](/notebooks/finetune_celltype_classification/):
+10. [FIG4: fine-tune scPRINT-2 for cell type classification and/or batch correction](/notebooks/finetune_celltype_classification/):
     how to fine-tune scPRINT-2 on your own cell type labels
+
+additional notebooks to reproduce the paper figures, see below in [reproducibility](#reproducibility).
 
 ## Documentation
 
@@ -535,6 +537,15 @@ to git clone the repo to have access to all the pre-training functionalities!**
 paths (see https://github.com/cantinilab/scPRINT-2/issues/12). Replace them with
 your own paths you want to use these test functions. They are also made
 available on hf.co: https://huggingface.co/jkobject/scPRINT-2/tree/main
+
+to reproduce the figures of the paper, see: [example-notebooks](#example-notebooks) and for other figures in:
+
+- Fig2A/B: [scdataloader](https://github.com/jkobject/scDataLoader/blob/main/figures/scprint_v2_paper.ipynb) and [figures/nice_umap.ipynb](figures/nice_umap.ipynb)
+- FIG3: [large dataset analysis](notebooks/scPRINT-2-repro-notebooks/large_dataset_analysis.ipynb) 
+- Fig3C: [smart-seq class](notebooks/scPRINT-2-repro-notebooks/smart_seq_class.ipynb) 
+- Fig4A: [DCA](notebooks/scPRINT-2-repro-notebooks/adding-dca) and [denoising](notebooks/scPRINT-2-repro-notebooks/denoising_V3.ipynb) 
+- FIG3A/5A: [ft notebook](<notebooks/scPRINT-2-repro-notebooks/batch_corr_op ft.ipynb>) and [v1 notebook](<notebooks/scPRINT-2-repro-notebooks/batch_corr_op v1.ipynb>) and [scprint2 notebook](notebooks/scPRINT-2-repro-notebooks/batch_corr_op.ipynb) and [plot](figures/plot_results.ipynb)
+- FIG 6B/C/D/E: [collabfold](notebooks/scPRINT-2-repro-notebooks/colabfold_with_precomputed_humanmsa.ipynb) and [cross-species-gn](notebooks/scPRINT-2-repro-notebooks/gene_network_cross_species_analysis.ipynb) 
 
 ### Building the Docker Image
 
