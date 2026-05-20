@@ -297,19 +297,19 @@ more examples of using the command line are available in the
 3. [do gene-network inference with scPRINT-2](/notebooks/scPRINT-2-repro-notebooks/gene_networks.ipynb):
    how to use scPRINT-2 to infer gene regulatory networks from your scRNAseq
    data (the first part is about getting ground truth data with benGRN)
-4. [generate cell embeddings and cell label predictions from my data](/notebooks/scprint_inference/):
+4. [generate cell embeddings and cell label predictions from my data](./notebooks/scPRINT-2-repro-notebooks/batch_corr_op.ipynb):
    how to use scPRINT-2 to generate cell embeddings and predict cell type
-5. [generate gene output embeddings from my gene expressiond data](/notebooks/gene_embeddings/):
+5. [generate gene output embeddings from my gene expression data](./notebooks/scPRINT-2-repro-notebooks/output_embeddings.ipynb):
    how to use scPRINT-2 to generate gene embeddings from your scRNAseq data
-6. [do counterfactual gene expression prediction with scPRINT-2](/notebooks/counterfactual_imputation/):
+6. [do counterfactual gene expression prediction with scPRINT-2](./notebooks/scPRINT-2-repro-notebooks/generative_modelling.ipynb):
    how to use scPRINT-2 to impute gene expression under different conditions
-7. [do denoising with scPRINT-2](/notebooks/denoising/): how to use scPRINT-2 to
-   denoise your scRNAseq data
-8. [do imputation with scPRINT-2 (e.g. on Xenium Panel data)](/notebooks/imputation/):
+7. [do denoising with scPRINT-2](./notebooks/scPRINT-2-repro-notebooks/denoising_V3.ipynb):
+   how to use scPRINT-2 to denoise your scRNAseq data
+8. [do imputation with scPRINT-2 (e.g. on Xenium Panel data)](./notebooks/scPRINT-2-repro-notebooks/xenium_imputation.ipynb):
    how to use scPRINT-2 to impute missing genes in your scRNAseq data
-9. [run scPRINT-2 on some Xenium spatial transcriptomics data](/notebooks/xenium_spatial_transcriptomics/):
+9. [run scPRINT-2 on some Xenium spatial transcriptomics data](./notebooks/scPRINT-2-repro-notebooks/xenium_imputation.ipynb):
    how to use scPRINT-2 to analyse spatial transcriptomics data
-10. [fine-tune scPRINT-2 for cell type classification and/or batch correction](/notebooks/finetune_celltype_classification/):
+10. [fine-tune scPRINT-2 for cell type classification / batch correction / cross-species embeddings](./notebooks/scPRINT-2-repro-notebooks/fine_tuning_cross_species_emb_mmd.ipynb):
     how to fine-tune scPRINT-2 on your own cell type labels
 
 ## Documentation
