@@ -63,6 +63,7 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
         compress_class_dim: Optional[Dict[str, int]] = None,
         cell_specific_blocks: bool = False,
         zinb: bool = True,
+        doplot: bool = False,
         splicing_head: bool = False,
         do_adv_cls: bool = False,
         dropout: float = 0.1,
@@ -292,7 +293,7 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
         self.name = ""
         self.set_step = None
         self.lrfinder_steps = 0
-        self.doplot = False
+        self.doplot = doplot
         self.get_attention_layer = None
         self.embs = None
         self.pred_log_adata = True
@@ -569,9 +570,10 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
             self.cls_decoders[clss] = decoders.ClsDecoder(
                 dim,
                 n_cls,
-                layers=layers_cls,
+                layers=(layers_cls),
                 dropout=dropout,
             )
+
         if "cell_type_ontology_term_id" in classes and self.do_adv_cls:
             mdim = d_model_cell if cell_specific_blocks else self.d_model
             dim = (
@@ -750,6 +752,7 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
                 "cls_decoders." + name + ".out_layer.bias"
             ].shape[0]
             if size != clss.out_layer.bias.shape[0]:
+                print("updating the size of the classification head for ", name)
                 self.cls_decoders[name].out_layer = torch.nn.Linear(
                     clss.out_layer.weight.shape[1], size
                 )
@@ -2307,13 +2310,17 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
                 if sch is not None:
                     sch.step(self.trainer.callback_metrics["val_loss"])
                 # run the test function on specific dataset
+                doplot = self.doplot
+                self.doplot = True
                 if self.embs is not None:
+
                     self.log_adata(
                         gtclass=self.info, name="validation_part_" + str(self.counter)
                     )
                 if (self.current_epoch + 1) % self.test_every == 0:
                     self.on_test_epoch_end()
                 # Synchronize all processes with a timeout
+                self.doplot = doplot
             if torch.distributed.is_initialized():
                 # Set a timeout that's longer than your test typically takes
                 # Write rank to file for debugging
@@ -2621,10 +2628,8 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
                     self.log_adata(name=name + str(self.counter))
                     self.counter += 1
                 else:
-                    print(
-                        "WARNING, reached max size in memory, deleting the adata, \
-                        need to set pred_log_adata to True to log the adata"
-                    )
+                    print("WARNING, reached max size in memory, deleting the adata, \
+                        need to set pred_log_adata to True to log the adata")
                 self.pos = None
                 self.expr_pred = None
                 self.embs = None
