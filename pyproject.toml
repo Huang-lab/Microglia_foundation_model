@@ -17,7 +17,7 @@ dependencies = [
     "torchmetrics>=1.6.0",
     "torchdata>=0.7.1",
     "lamindb[gcp]==2.1.1",
-    "scDataLoader>=2.1.1",
+    "scDataLoader>=2.1.3",
     "simpler_flash>=1.3.5",
     "GRnnData>=1.3.2",
     "BenGRN>=1.3.2",
