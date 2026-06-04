@@ -27,7 +27,7 @@
 - what about only learning from contrastive loss (read the sccontrast paper
   first)
 - apply the ECS at each class level embeddings !!!!!
-- Use only fsq
+- test fully quantized xpressor compressor (only FSQ, no VAEs) [1 day]
 
 ## Novel capabilities
 
@@ -43,7 +43,7 @@
 
 ## Better model
 
-- test MOE
+- test MOE [3 days]
 - predict kinetics too (add a second MLP on top of the gene embeddings) [1 week]
 - Make a final V2 version with criss-cross attention and all other features
   (200M parameters and make it converge
