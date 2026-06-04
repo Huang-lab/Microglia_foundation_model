@@ -163,6 +163,11 @@ class Imputer:
                     batch["x"].to(device),
                     batch["depth"].to(device),
                 )
+                if (
+                    generate_on is not None
+                    and generate_on.shape[0] != expression.shape[0]
+                ):
+                    generate_on = generate_on[: expression.shape[0]]
                 model._predict(
                     gene_pos,
                     expression,

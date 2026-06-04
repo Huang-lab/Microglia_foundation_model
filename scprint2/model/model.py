@@ -1,6 +1,5 @@
 import os
 from functools import partial
-
 # from galore_torch import GaLoreAdamW
 from typing import Dict, Optional
 
@@ -331,6 +330,8 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
         self.labels_hierarchy = labels_hierarchy
         self.hparams["classes"] = classes
         self.hparams["label_decoders"] = label_decoders
+        self.hparams["labels_hierarchy"] = labels_hierarchy
+        self.hparams["genes"] = genes
         self.hparams["organisms"] = organisms
         self.hparams["use_metacell_token"] = use_metacell_token
         # 20x more likely to drop a non TF compared to a TF
@@ -826,14 +827,14 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
 
         if self.label_decoders != checkpoints["hyper_parameters"][
             "label_decoders"
-        ] or self.labels_hierarchy != checkpoints["hyper_parameters"].get(
-            "labels_hierarchy", {}
-        ):
-            print("label decoders have changed, be careful")
+        ]:
+            print("WARNING: label decoders have changed, be careful")
             self.label_decoders = checkpoints["hyper_parameters"]["label_decoders"]
             self.labels_hierarchy = checkpoints["hyper_parameters"].get(
                 "labels_hierarchy", {}
             )
+            if self.labels_hierarchy == {}:
+                print("WARNING: no label hierarchy, this is expected?")
             for k, v in self.labels_hierarchy.items():
                 tens = torch.zeros((len(v), self.label_counts[k]))
                 for k2, v2 in v.items():
@@ -881,7 +882,7 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
             ].pop("transformer")
         try:
             if self.trainer.datamodule.decoders != self.label_decoders:
-                print("label decoders have changed, be careful")
+                print("label decoders have changed, be careful, changing on the datamodule")
                 # if we don't have the same decoders, we need to update the one on the datamodule side
                 for k, v in self.label_decoders.items():
                     mencoders[k] = {va: ke for ke, va in v.items()}
@@ -932,6 +933,7 @@ class scPRINT2(L.LightningModule, PyTorchModelHubMixin):
                     del checkpoints["state_dict"][i]
         org = checkpoints["hyper_parameters"].get("organisms")
         if self.organisms != org and org is not None:
+            print("organisms have changed, be careful")
             self.organisms = org
             try:
                 self.trainer.datamodule.organisms = self.organisms
