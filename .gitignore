@@ -228,3 +228,10 @@ figures/
 notebooks/
 tests/*.h5ad
 tests/*.parquet
+
+# Large / regenerable assets — keep out of git
+docs/umap/
+figures/
+*.h5ad
+*.parquet
+!data/main/*.parquet   # keep the GRN priors we deliberately retained
