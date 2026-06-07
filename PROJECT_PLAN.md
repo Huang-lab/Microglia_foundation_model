@@ -1,0 +1,157 @@
+# Microglia_foundation_model — Project Plan
+
+> A microglia-specialized single-cell foundation model, built on
+> [scPRINT-2](https://github.com/cantinilab/scPRINT-2). This repository is a
+> fork whose goal is **specialization, not pretraining from scratch**: take a
+> generalist 16-species / 350M-cell model and turn it into a microglia-state
+> expert.
+
+This document is both the engineering roadmap and a demonstration of an
+efficient human + Claude workflow across software engineering, deep learning,
+and computational biology. Each phase names the **deliverable** and the
+**collaboration pattern** (which work goes to agentic Claude Code, which to
+high-reasoning models, which to local models under a cost-aware routing policy).
+
+## Scope & non-goals
+
+- **In scope:** repo specialization, reproducible env, microglia data assembly,
+  zero-shot baseline, fine-tuning/specialization on the small/medium checkpoint,
+  biological validation, packaging.
+- **Out of scope:** full pretraining of the large model from scratch (350M cells
+  does not fit on a single A5000-class GPU). We fine-tune from a released
+  checkpoint.
+- **Compute target:** Minerva HPC (Mount Sinai), SLURM, NVIDIA A100 80 GB,
+  conda/module-managed env, `torch==2.8.0`. Fine-tuning small/medium fits
+  comfortably; full pretrain does not. Long runs go through `sbatch`.
+
+## Phase status
+
+| Phase | Title | Domain | Status |
+|------:|-------|--------|--------|
+| 0 | Fork hygiene & project framing | SWE | ☐ |
+| 1 | Reproducible environment | SWE / DevOps | ☐ |
+| 2 | Microglia data assembly | Comp bio | ☐ |
+| 3 | Zero-shot baseline | DL + comp bio | ☐ |
+| 4 | Specialization / fine-tuning | DL | ☐ |
+| 5 | Biological validation & downstream | Comp bio | ☐ |
+| 6 | Package the showcase | SWE / comms | ☐ |
+
+Phases 0–3 are a credible standalone showcase. Phases 4–5 are the headline
+(real scientific contribution + the most interesting Claude collaboration).
+
+---
+
+## Phase 0 — Fork hygiene & project framing (software engineering)
+
+Reset the project's identity without breaking the architecture's identity.
+
+- [ ] Clone, set `upstream` remote to `cantinilab/scPRINT-2`, `origin` to your
+      fork, so architecture fixes can be pulled later.
+- [ ] Replace `CLAUDE.md` with project memory for *this* fork (provided).
+- [ ] Reframe `README.md` H1 + intro as "microglia-specialized model built on
+      scPRINT-2"; fix repo-URL badges/links to the fork.
+- [ ] Update identity-only references: `mkdocs.yml` (`site_name`, `site_url`),
+      `pyproject.toml` `[project.urls].repository`, docs deploy URL in
+      `Makefile`, `docs/index.md` repo URLs, `CONTRIBUTING.md`.
+- [ ] **Keep functional, do not rename:** the `scprint2` package dir and import
+      name, the `scPRINT2` class, the acronym expansion in docstrings, the
+      Lightning error-string match in `model.py`, and the `scprint2` CLI/script
+      entry point. This preserves checkpoint loading and clean upstream merges.
+
+See `PHASE0_RENAME.md` for the exact, reviewable changeset.
+
+**Claude pattern:** agentic Claude Code inventories every reference and proposes
+one reviewable diff; you stay in the review seat. The judgment call (identity vs.
+architecture name) is exactly what makes this more than blind find/replace.
+
+## Phase 1 — Reproducible environment (software engineering / DevOps)
+
+- [ ] `module load` CUDA + anaconda; create the project conda env; install the
+      package + `flash` extra **on a GPU node** (CUDA present) so flash-attention
+      builds against the A100.
+- [ ] Pre-stage on a login/transfer node → scratch: checkpoint, lamin ontology
+      DB, Census `.h5ad` cache. Confirm Minerva's compute-node egress policy.
+- [ ] Stand up lamin.ai (ontologies for genes / cell types / organisms).
+- [ ] Run `tests/test_base.py` via interactive `srun` on an A100 → green baseline.
+- [ ] Capture working setup in `SETUP.md` + an `sbatch` template.
+
+**Claude pattern:** route the "make the suite pass on this node" traceback loop
+to an agentic coding tool; review the module/conda pins.
+
+## Phase 2 — Microglia data assembly (computational biology)
+
+- [ ] Choose corpus spanning homeostatic + disease-associated states (e.g. human
+      brain immune atlases via CELLxGENE; mouse 5xFAD/DAM for the canonical
+      homeostatic→DAM trajectory).
+- [ ] Build a `scDataLoader`-compatible AnnData collection with required `obs`
+      keys (`organism_ontology_term_id`, `cell_type_ontology_term_id`, a `batch`
+      key) via the repo `Preprocessor`.
+- [ ] Define the microglia state label set you will predict.
+
+**Claude pattern:** high-reasoning Claude for dataset selection, ontology-term
+reconciliation, and label-schema design — lit synthesis, not code-grinding.
+
+## Phase 3 — Zero-shot baseline (deep learning + comp bio)
+
+Run the *pretrained* model before any training to quantify what specialization
+buys you.
+
+- [ ] `Embedder` → cell embeddings + label predictions + UMAP; does the
+      generalist already separate states / correct batch?
+- [ ] `Denoiser` and `GNInfer` (GRN) on a microglia subset.
+- [ ] Eval harness: scIB batch/bio-conservation, label F1, GRN recovery vs. a
+      known microglia TF set (e.g. SPI1, IRF8, MEF2C).
+
+**Claude pattern:** Claude drafts the analysis notebook and the metric code; this
+becomes the "before" panel.
+
+## Phase 4 — Specialization / fine-tuning (deep learning) — core
+
+Use `tasks/finetune.py` (`FinetuneBatchClass`): supports `predict_keys`, batch
+learning, MMD batch correction, `xpressor` fine-tune mode.
+
+- [ ] Fine-tune small/medium checkpoint to predict microglia states + integrate
+      across donors/conditions.
+- [ ] Ablations (fits the A5000 budget): ± MMD, ± `learn_batches_on`, frozen vs.
+      unfrozen encoder.
+- [ ] Optional focused experiment: FSQ-bottleneck behavior on a narrow cell-type
+      manifold.
+
+**Claude pattern:** architecture/loss reasoning + ablation design → high-reasoning
+model; the "launch run → parse W&B → summarize → propose next hyperparameter"
+loop → cheaper local models per the routing policy. A clean cost-aware
+multi-agent demonstration on a real DL task.
+
+## Phase 5 — Biological validation & downstream (computational biology)
+
+Show the specialized model does what the generalist does not.
+
+- [ ] Recover homeostatic→DAM transition + marker programs (TREM2, APOE, CST7).
+- [ ] Microglia-specific GRN; compare hub TFs to literature.
+- [ ] Quantify lift over the Phase 3 baseline on identical metrics.
+
+**Claude pattern:** Claude as validation partner — interpret GRNs against known
+biology, flag confident-but-wrong predictions, draft the results narrative.
+
+## Phase 6 — Package the showcase (software engineering + communication)
+
+- [ ] One reproducible end-to-end notebook (zero-shot → fine-tune → validate).
+- [ ] CI smoke test (tiny version of the pipeline).
+- [ ] Refreshed README with a results figure + short write-up.
+
+**Claude pattern:** Claude as documentation/presentation engineer for the final
+deliverable.
+
+---
+
+## Risks & notes
+
+- **Don't blanket-rename `scPRINT-2`.** It is both project identity *and* the
+  architecture's scientific name. Surgical edits only (Phase 0).
+- **Checkpoint compatibility:** keep the `scPRINT2` class name; `load_from_checkpoint`
+  depends on it.
+- **lamin.ai is a hard dependency** for ontology resolution — budget setup time.
+- **A100 80 GB:** ample for fine-tuning small/medium; scale `max_len`/`batch_size`
+  up before reaching for gradient checkpointing. Full pretrain still out of scope.
+- **HPC egress:** pre-stage all downloads (checkpoint, lamin, Census) on a
+  login/transfer node; compute nodes may be offline.
