@@ -132,19 +132,24 @@ override-dependencies = [
     "tokenizers>=0.15,<0.21.0",
     "torchtext; platform_machine == 'x86_64'",
     # Stock torch 2.8 pins triton==3.4.0 (x86-only on PyPI). The cu129 index ships
-    # triton 3.3.0 for aarch64, which is the supported pairing for the cu129 torch
-    # build on arm64. Keep 3.4.0 on x86_64 (Minerva), use 3.3.0 on aarch64.
+    # triton 3.3.0 for aarch64, the supported pairing for the cu129 torch build on
+    # arm64. On x86_64 the cu129 torch wheel pairs with the regular triton 3.4.0.
     "triton==3.3.0; platform_machine == 'aarch64' and sys_platform == 'linux'",
 ]
 
-# On aarch64 (GB10 / Grace-Blackwell) PyPI ships only a CPU-only torch 2.8 wheel.
-# Pull the CUDA-enabled aarch64 build (cu129, includes sm_120 Blackwell kernels)
-# from the PyTorch download index. The marker scopes this to arm64 Linux only so
-# the x86_64 Minerva path is unaffected (it resolves torch from PyPI as before).
+# Both target GPUs are Blackwell and need the CUDA 12.9 torch build, not the
+# default PyPI wheel:
+#   - GB10 dev box: aarch64; PyPI ships only CPU-only torch 2.8 for arm64.
+#   - Minerva: x86_64 NVIDIA B200 (sm_100); stock PyPI x86 torch 2.8 lacks sm_100
+#     kernels and fails at runtime.
+# Route torch/vision/audio to the cu129 index on BOTH Linux arches. triton only
+# needs redirecting on aarch64 (x86 resolves triton 3.4.0 normally from PyPI).
+# NOTE: the Minerva conda path installs cu129 torch explicitly via pip in
+# jobs/create_cond_env.sh; this block governs `uv` resolution if used there too.
 [tool.uv.sources]
-torch = [{ index = "pytorch-cu129", marker = "platform_machine == 'aarch64' and sys_platform == 'linux'" }]
-torchvision = [{ index = "pytorch-cu129", marker = "platform_machine == 'aarch64' and sys_platform == 'linux'" }]
-torchaudio = [{ index = "pytorch-cu129", marker = "platform_machine == 'aarch64' and sys_platform == 'linux'" }]
+torch = [{ index = "pytorch-cu129", marker = "sys_platform == 'linux' and (platform_machine == 'aarch64' or platform_machine == 'x86_64')" }]
+torchvision = [{ index = "pytorch-cu129", marker = "sys_platform == 'linux' and (platform_machine == 'aarch64' or platform_machine == 'x86_64')" }]
+torchaudio = [{ index = "pytorch-cu129", marker = "sys_platform == 'linux' and (platform_machine == 'aarch64' or platform_machine == 'x86_64')" }]
 triton = [{ index = "pytorch-cu129", marker = "platform_machine == 'aarch64' and sys_platform == 'linux'" }]
 
 [[tool.uv.index]]

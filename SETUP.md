@@ -5,7 +5,7 @@ This repo targets **two** compute environments. Pick the one you are on.
 | Target | Hardware | Tooling | Status |
 |--------|----------|---------|--------|
 | **A. Local dev box (GB10)** | NVIDIA GB10 (Grace-Blackwell, **arm64/aarch64**, sm_121), 120 GB unified mem | `uv` | ✅ verified green |
-| **B. Minerva HPC (Mount Sinai)** | NVIDIA A100 80 GB (**x86_64**), SLURM | `module load` + conda, `sbatch` | ⚙️ parameterized, untested from here |
+| **B. Minerva HPC (Mount Sinai)** | NVIDIA **B200** (Blackwell sm_100, **x86_64**) | `module load` + conda, **LSF `bsub`** | ⚙️ verified modules/queues, env build untested |
 
 The package, checkpoint loading, and `tests/test_base.py` all pass on **A**.
 Path **B** keeps the upstream x86 dependency story intact (see notes below).
@@ -77,40 +77,67 @@ Expected: `verify_env.py` → 0 FAIL; `pytest` → `1 passed`.
 
 ---
 
-## B. Minerva HPC — A100 / x86_64 (conda + SLURM)
+## B. Minerva HPC — B200 / x86_64 (conda + LSF `bsub`)
 
-On x86_64 the `pyproject.toml` platform markers fall back to the normal PyPI
-resolution (stock `torch==2.8.0`, `triton==3.4.0`, `torchtext` included), so the
-arm64 overrides above do **not** apply.
+**Verified Minerva facts (2026-06-13):**
+- Scheduler is **LSF** (`bsub`/`bjobs`/`bqueues`), *not* SLURM.
+- GPUs are **NVIDIA B200** (Blackwell, **sm_100**), *not* A100. They need CUDA
+  ≥12.8 and a **cu128/cu129 torch build** — stock PyPI x86_64 torch 2.8 lacks
+  sm_100 kernels and fails at runtime.
+- Modules confirmed present: `cuda/12.9.1`, `gcc/12.2.0`, `anaconda3/2025.06`.
+- GPU queues: `gpu` (max 144h), `gpuexpress` (max 15h), `interactive`.
+- **`bsub -P <project>` is mandatory.** Use `-P acc_huangk06a`.
+- GPU request syntax: `-q gpu -gpu "num=1"`. Memory is **per-slot MB**:
+  `-n 8 -R "rusage[mem=8000]"` ≈ 64 GB total.
+- Compute nodes **have internet egress** (HF/PyTorch reachable) — full
+  pre-staging is optional; caching is just a courtesy to avoid re-downloads.
+- Scratch: `/sc/arion/scratch/$USER` (arion has ~120 TB free). Lab env dir:
+  `/sc/arion/projects/DiseaseGeneCell/Huang_lab_data/.conda/envs/scprint2`.
 
-### 1. Build the env on a GPU node (CUDA present, so flash-attn builds for A100)
+### 1. Build the env on a GPU node (so flash-attn builds against the B200)
 ```bash
-module purge
-module load anaconda3      # <-- match Minerva's actual module names
-module load cuda           # <-- match the CUDA your torch build expects
-conda create -n mfm python=3.11 -y
-conda activate mfm
-pip install -e ".[dev,flash]"   # flash extra builds simpler_flash[flash] against the A100
+# interactive GPU shell on the express queue:
+bsub -P acc_huangk06a -q gpuexpress -gpu "num=1" -n 8 -W 2:00 -Is bash
+# then, from the repo root:
+bash jobs/create_cond_env.sh
 ```
-> Build the env on a **GPU node**, not a login node, so flash-attention compiles
-> against the A100 (sm_80).
+`jobs/create_cond_env.sh` loads the right modules, creates the conda env
+(python 3.11), installs **cu129 torch first** (critical for sm_100), then
+`pip install -e ".[dev,flash]"`, and runs `verify_env.py` as a green gate.
 
-### 2. Pre-stage everything on a login/transfer node → scratch
-Compute nodes may have no egress. Stage before submitting:
+> Build on a **GPU node**, not a login node, so flash-attention compiles against
+> the B200.
+
+### 2. (Optional) cache big artifacts to scratch
+Egress works on compute nodes, so this is optional but avoids re-downloads:
 - checkpoint → `$SCRATCH/mfm/checkpoints/small-v2.ckpt`
 - lamin ontology DB → `$SCRATCH/mfm/lamin`
 - Census `.h5ad` cache → `$SCRATCH/mfm/data/`
-- HF cache → `$SCRATCH/mfm/hf` (`export HF_HUB_OFFLINE=1` on compute nodes)
+- HF cache → `$SCRATCH/mfm/hf`
 - `data/main/TFs.txt` (see A.3)
 
-### 3. Verify + run via SLURM
+### 3. Verify + run via LSF
 ```bash
-srun --partition=gpu --gres=gpu:a100:1 --pty bash    # interactive A100
+# one-shot GPU diagnostic as a batch job (B200 node, real CUDA checks):
+bsub < jobs/verify_env.lsf
+# optionally test-load a checkpoint:
+CKPT=$SCRATCH/mfm/checkpoints/small-v2.ckpt bsub < jobs/verify_env.lsf
+
+# interactive sanity check on a GPU node:
+bsub -P acc_huangk06a -q gpuexpress -gpu "num=1" -n 8 -W 1:00 -Is bash
+source jobs/activate_conda_env.sh
 python scripts/verify_env.py --ckpt $SCRATCH/mfm/checkpoints/small-v2.ckpt
 pytest tests/test_base.py -x
+
+# batch job for long runs:
+bsub < jobs/finetune.lsf          # edit -W / mem / the training command first
 ```
-For long jobs use the template: `slurm/run_finetune.sbatch` (edit partition,
-account, module names, and the scratch paths at the top).
+
+> `jobs/verify_env.lsf` is the Minerva analogue of running `verify_env.py`
+> locally: it lands on a **B200 GPU node** so `torch.cuda.is_available()`, GPU
+> name/memory, and optional checkpoint loading are exercised for real (a
+> login-node run cannot see a GPU). Results land in
+> `/sc/arion/scratch/$USER/mfm/logs/verify_<jobid>.out`.
 
 ---
 

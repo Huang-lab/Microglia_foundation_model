@@ -20,9 +20,12 @@ high-reasoning models, which to local models under a cost-aware routing policy).
 - **Out of scope:** full pretraining of the large model from scratch (350M cells
   does not fit on a single A5000-class GPU). We fine-tune from a released
   checkpoint.
-- **Compute target:** Minerva HPC (Mount Sinai), SLURM, NVIDIA A100 80 GB,
-  conda/module-managed env, `torch==2.8.0`. Fine-tuning small/medium fits
-  comfortably; full pretrain does not. Long runs go through `sbatch`.
+- **Compute target:** Minerva HPC (Mount Sinai), **LSF (`bsub`)**, **NVIDIA B200**
+  (Blackwell sm_100), conda/module-managed env, `torch==2.8.0` **built for CUDA
+  12.9 (cu129)** — stock PyPI x86_64 torch lacks sm_100 kernels. Fine-tuning
+  small/medium fits comfortably; full pretrain does not. Long runs go through
+  `bsub` (`jobs/finetune.lsf`). A second dev target, an NVIDIA GB10
+  (Grace-Blackwell, arm64), is verified green for local iteration.
 
 ## Phase status
 
@@ -71,19 +74,23 @@ architecture name) is exactly what makes this more than blind find/replace.
       CUDA wheels for torch/vision/audio, `triton==3.3.0`, and `torchtext`
       scoped to x86_64 only (EOL + unused). `torch 2.8.0+cu129`, CUDA available
       on `NVIDIA GB10` (sm_121, fwd-compat).
-- [ ] **Minerva (x86_64) conda path** — parameterized in `SETUP.md` but untested
-      from the dev box: `module load` CUDA + anaconda; create conda env; install
-      package + `flash` extra **on a GPU node** so flash-attn builds against the
-      A100.
-- [ ] Pre-stage on a login/transfer node → scratch: checkpoint, lamin ontology
-      DB, Census `.h5ad` cache. Confirm Minerva's compute-node egress policy.
+- [x] **Minerva facts verified (2026-06-13):** scheduler is **LSF** (not SLURM);
+      GPUs are **B200 / sm_100** (not A100); modules `cuda/12.9.1`, `gcc/12.2.0`,
+      `anaconda3/2025.06` present; queues `gpu`/`gpuexpress`/`interactive`;
+      `bsub -P acc_huangk06a` mandatory; compute nodes **have egress**.
+- [ ] **Minerva (x86_64 B200) conda path** — scripted but env build not yet run:
+      `jobs/create_cond_env.sh` (loads modules, installs **cu129 torch** then
+      `pip install -e ".[dev,flash]"`, builds flash-attn **on a GPU node**).
+- [x] Egress confirmed on compute nodes → full pre-staging optional; cache
+      checkpoint / lamin ontology DB / Census `.h5ad` to scratch as a courtesy.
 - [x] Stand up lamin.ai (ontologies for genes / cell types / organisms) —
       `lamin init ... --modules bionty`; ontologies populate on first test run.
 - [x] Run `tests/test_base.py` → **green baseline on GB10** (full
       Preprocessor→Denoiser→Embedder→GNInfer→train pipeline, `1 passed`).
-      Still TODO via interactive `srun` on an A100.
-- [x] Capture working setup in `SETUP.md` (both paths) + `sbatch` template
-      (`slurm/run_finetune.sbatch`, `verify_env.py` path fixed).
+      Still TODO via interactive `bsub -Is` on a B200.
+- [x] Capture working setup in `SETUP.md` (both paths) + **LSF** template
+      (`jobs/finetune.lsf`); `slurm/run_finetune.sbatch` deprecated (wrong
+      scheduler), `jobs/{create,activate}_conda_env.sh` corrected.
 - [ ] Recover the `data/`-gitignored runtime files on each fresh clone
       (`data/main/TFs.txt`, `tests/test.h5ad`, `tests/test_emb.parquet`) — see
       `SETUP.md` A.3.
@@ -164,7 +171,8 @@ deliverable.
 - **Checkpoint compatibility:** keep the `scPRINT2` class name; `load_from_checkpoint`
   depends on it.
 - **lamin.ai is a hard dependency** for ontology resolution — budget setup time.
-- **A100 80 GB:** ample for fine-tuning small/medium; scale `max_len`/`batch_size`
-  up before reaching for gradient checkpointing. Full pretrain still out of scope.
+- **B200 (~180 GB HBM3e):** ample for fine-tuning small/medium; scale
+  `max_len`/`batch_size` up before reaching for gradient checkpointing. Full
+  pretrain still out of scope. Requires the cu129 torch build (sm_100).
 - **HPC egress:** pre-stage all downloads (checkpoint, lamin, Census) on a
   login/transfer node; compute nodes may be offline.

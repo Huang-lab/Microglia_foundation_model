@@ -3,8 +3,9 @@ set -euo pipefail
 
 # --- Modules / shell setup ---
 module purge
-module load anaconda3/latest
-module load cuda/12.4.0    
+module load anaconda3/2025.06
+module load cuda/12.9.1     # B200 (Blackwell sm_100) requires CUDA >= 12.8
+module load gcc/12.2.0
 
 source "$(conda info --base)/etc/profile.d/conda.sh"
 

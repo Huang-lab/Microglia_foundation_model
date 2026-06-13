@@ -1,0 +1,52 @@
+#!/bin/bash
+#BSUB -J mfm_finetune
+#BSUB -P acc_huangk06a               # REQUIRED on Minerva (bsub -P); group huangk06a
+#BSUB -q gpu                         # GPU queue (max 6 days). Use gpuexpress for <15h debug.
+#BSUB -n 8                           # CPU slots; match finetune num_workers
+#BSUB -gpu "num=1"                   # one GPU (B200). Add ':mode=exclusive_process' if needed.
+#BSUB -R "rusage[mem=8000]"          # MB PER SLOT on Minerva LSF -> 8 * 8000 = 64 GB total
+#BSUB -R "span[hosts=1]"             # keep all slots on one host
+#BSUB -W 12:00                       # walltime HH:MM (gpu queue max 144:00)
+#BSUB -o /sc/arion/scratch/%U/mfm/logs/%J.out
+#BSUB -e /sc/arion/scratch/%U/mfm/logs/%J.err
+
+set -euo pipefail
+
+# --- 0. Paths -------------------------------------------------------------
+SCRATCH="/sc/arion/scratch/${USER}/mfm"
+REPO="${REPO:-$(pwd)}"                            # submit from the repo root
+CKPT="${SCRATCH}/checkpoints/small-v2.ckpt"      # pre-cached (or downloaded; egress OK)
+ADATA="${SCRATCH}/data/microglia_census.h5ad"    # pre-staged data
+export LAMIN_CACHE_DIR="${SCRATCH}/lamin"
+export HF_HOME="${SCRATCH}/hf"
+# Compute nodes HAVE internet egress on Minerva, so offline mode is optional.
+# Leave HF online for first run; set HF_HUB_OFFLINE=1 to force the cache.
+mkdir -p "${SCRATCH}/logs" "${SCRATCH}/checkpoints" "${SCRATCH}/data" "${HF_HOME}" "${LAMIN_CACHE_DIR}"
+
+# --- 1. Environment -------------------------------------------------------
+module purge
+module load anaconda3/2025.06
+module load cuda/12.9.1                           # B200 (sm_100) needs CUDA >=12.8; torch built on cu129
+module load gcc/12.2.0                            # toolchain for any source builds (flash-attn)
+source "$(conda info --base)/etc/profile.d/conda.sh"
+
+ENV_PREFIX="/sc/arion/projects/DiseaseGeneCell/Huang_lab_data/.conda/envs/scprint2"
+export PYTHONNOUSERSITE=1
+unset PYTHONPATH || true
+conda activate "${ENV_PREFIX}"
+
+cd "${REPO}"
+
+# --- 2. Sanity check before the long run ----------------------------------
+python scripts/verify_env.py --ckpt "${CKPT}"
+
+# --- 3. Fine-tune ----------------------------------------------------------
+# Wire the real scprint2 fit/finetune command here once the Phase 4 config is set.
+# Example skeleton:
+#   scprint2 fit --config config/base_v2.yml \
+#       --model.ckpt_path "${CKPT}" \
+#       --data.adata "${ADATA}"
+echo "[mfm] env OK on $(hostname); GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null || echo '?')"
+echo "[mfm] wire the scprint2 fit/finetune command in jobs/finetune.lsf."
+
+echo "[mfm] done."

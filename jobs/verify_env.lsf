@@ -1,0 +1,67 @@
+#!/bin/bash
+#BSUB -J mfm_verify
+#BSUB -P acc_huangk06a               # REQUIRED on Minerva (bsub -P); group huangk06a
+#BSUB -q gpuexpress                  # short queue (max 15h) is plenty for a diagnostic
+#BSUB -n 4                           # a few CPU slots
+#BSUB -gpu "num=1"                   # one B200 (sm_100) so the CUDA checks are real
+#BSUB -R "rusage[mem=8000]"          # MB PER SLOT -> 4 * 8000 = 32 GB total
+#BSUB -R "span[hosts=1]"
+#BSUB -W 0:30                        # 30 min walltime
+#BSUB -o /sc/arion/scratch/%U/mfm/logs/verify_%J.out
+#BSUB -e /sc/arion/scratch/%U/mfm/logs/verify_%J.err
+
+# Run scprint2's environment diagnostic ON A B200 GPU NODE via LSF.
+#
+# Submit from the repo root:
+#   bsub < jobs/verify_env.lsf
+# Optionally test-load a checkpoint:
+#   CKPT=/sc/arion/scratch/$USER/mfm/checkpoints/small-v2.ckpt bsub < jobs/verify_env.lsf
+#
+# This is the Minerva analogue of running `python scripts/verify_env.py` locally:
+# unlike a login-node run, it lands on a GPU host so `torch.cuda.is_available()`,
+# the GPU name/memory, and (optionally) checkpoint loading are exercised for real.
+
+set -euo pipefail
+
+# --- Paths ----------------------------------------------------------------
+SCRATCH="/sc/arion/scratch/${USER}/mfm"
+REPO="${REPO:-$(pwd)}"                              # submit from the repo root
+CKPT="${CKPT:-}"                                    # optional: export CKPT=/path/to.ckpt
+export LAMIN_CACHE_DIR="${LAMIN_CACHE_DIR:-${SCRATCH}/lamin}"
+export HF_HOME="${HF_HOME:-${SCRATCH}/hf}"
+mkdir -p "${SCRATCH}/logs" "${LAMIN_CACHE_DIR}" "${HF_HOME}"
+
+# --- Environment ----------------------------------------------------------
+module purge
+module load anaconda3/2025.06
+module load cuda/12.9.1                             # B200 needs CUDA >= 12.8 (torch cu129)
+module load gcc/12.2.0
+source "$(conda info --base)/etc/profile.d/conda.sh"
+
+ENV_PREFIX="/sc/arion/projects/DiseaseGeneCell/Huang_lab_data/.conda/envs/scprint2"
+export PYTHONNOUSERSITE=1
+unset PYTHONPATH || true
+
+if [ ! -d "${ENV_PREFIX}" ]; then
+  echo "[mfm] ERROR: conda env not found at ${ENV_PREFIX}" >&2
+  echo "[mfm]        build it first on a GPU node:  bash jobs/create_cond_env.sh" >&2
+  exit 1
+fi
+conda activate "${ENV_PREFIX}"
+cd "${REPO}"
+
+# --- Report the node + GPU before the diagnostic --------------------------
+echo "[mfm] host: $(hostname)"
+nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader 2>/dev/null \
+  || echo "[mfm] WARNING: nvidia-smi not found — are we really on a GPU node?"
+
+# --- Run the diagnostic ---------------------------------------------------
+if [ -n "${CKPT}" ]; then
+  echo "[mfm] running verify_env.py with checkpoint: ${CKPT}"
+  python scripts/verify_env.py --ckpt "${CKPT}"
+else
+  echo "[mfm] running verify_env.py (no checkpoint; pass CKPT=... to test-load one)"
+  python scripts/verify_env.py
+fi
+
+echo "[mfm] verify done."
