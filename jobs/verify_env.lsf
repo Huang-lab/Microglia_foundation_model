@@ -1,6 +1,6 @@
 #!/bin/bash
 #BSUB -J mfm_verify
-#BSUB -P acc_huangk06a               # REQUIRED on Minerva (bsub -P); group huangk06a
+#BSUB -P acc_DiseaseGeneCell               # REQUIRED on Minerva (bsub -P); group huangk06a
 #BSUB -q gpuexpress                  # short queue (max 15h) is plenty for a diagnostic
 #BSUB -n 4                           # a few CPU slots
 #BSUB -gpu "num=1"                   # one B200 (sm_100) so the CUDA checks are real
