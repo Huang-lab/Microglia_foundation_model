@@ -27,7 +27,7 @@ module load cuda                 # <-- match the CUDA your torch build expects
 source activate mfm              # the project conda env (built on a GPU node)
 
 # --- 2. Sanity check before the long run ----------------------------------
-python verify_env.py --ckpt "${CKPT}"
+python scripts/verify_env.py --ckpt "${CKPT}"
 
 # --- 3. Fine-tune ----------------------------------------------------------
 # Replace with the real scprint2 CLI invocation / training entrypoint once the

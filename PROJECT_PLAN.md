@@ -29,7 +29,7 @@ high-reasoning models, which to local models under a cost-aware routing policy).
 | Phase | Title | Domain | Status |
 |------:|-------|--------|--------|
 | 0 | Fork hygiene & project framing | SWE | ☐ |
-| 1 | Reproducible environment | SWE / DevOps | ☐ |
+| 1 | Reproducible environment | SWE / DevOps | ◑ (GB10 green; Minerva parameterized) |
 | 2 | Microglia data assembly | Comp bio | ☐ |
 | 3 | Zero-shot baseline | DL + comp bio | ☐ |
 | 4 | Specialization / fine-tuning | DL | ☐ |
@@ -66,14 +66,27 @@ architecture name) is exactly what makes this more than blind find/replace.
 
 ## Phase 1 — Reproducible environment (software engineering / DevOps)
 
-- [ ] `module load` CUDA + anaconda; create the project conda env; install the
-      package + `flash` extra **on a GPU node** (CUDA present) so flash-attention
-      builds against the A100.
+- [x] **GB10 (arm64) dev path with `uv`** — green. `uv sync` + `uv sync --extra
+      dev`; resolved the arm64/Blackwell torch story (see `SETUP.md`): cu129
+      CUDA wheels for torch/vision/audio, `triton==3.3.0`, and `torchtext`
+      scoped to x86_64 only (EOL + unused). `torch 2.8.0+cu129`, CUDA available
+      on `NVIDIA GB10` (sm_121, fwd-compat).
+- [ ] **Minerva (x86_64) conda path** — parameterized in `SETUP.md` but untested
+      from the dev box: `module load` CUDA + anaconda; create conda env; install
+      package + `flash` extra **on a GPU node** so flash-attn builds against the
+      A100.
 - [ ] Pre-stage on a login/transfer node → scratch: checkpoint, lamin ontology
       DB, Census `.h5ad` cache. Confirm Minerva's compute-node egress policy.
-- [ ] Stand up lamin.ai (ontologies for genes / cell types / organisms).
-- [ ] Run `tests/test_base.py` via interactive `srun` on an A100 → green baseline.
-- [ ] Capture working setup in `SETUP.md` + an `sbatch` template.
+- [x] Stand up lamin.ai (ontologies for genes / cell types / organisms) —
+      `lamin init ... --modules bionty`; ontologies populate on first test run.
+- [x] Run `tests/test_base.py` → **green baseline on GB10** (full
+      Preprocessor→Denoiser→Embedder→GNInfer→train pipeline, `1 passed`).
+      Still TODO via interactive `srun` on an A100.
+- [x] Capture working setup in `SETUP.md` (both paths) + `sbatch` template
+      (`slurm/run_finetune.sbatch`, `verify_env.py` path fixed).
+- [ ] Recover the `data/`-gitignored runtime files on each fresh clone
+      (`data/main/TFs.txt`, `tests/test.h5ad`, `tests/test_emb.parquet`) — see
+      `SETUP.md` A.3.
 
 **Claude pattern:** route the "make the suite pass on this node" traceback loop
 to an agentic coding tool; review the module/conda pins.
