@@ -13,7 +13,7 @@ dependencies = [
     "torch==2.8.0",
     "torchvision>=0.23.0",
     "torchaudio>=0.12.0",
-    "torchtext>=0.13.0",
+    # torchtext removed: EOL upstream, unused in this codebase, and no aarch64 wheel (arm64 GB10).
     "torchmetrics>=1.6.0",
     "torchdata>=0.7.1",
     "lamindb[gcp]==2.1.1",
@@ -125,7 +125,32 @@ only-include = [
 ]
 
 [tool.uv]
-override-dependencies = ["tokenizers>=0.15,<0.21.0"]
+# torchtext: EOL upstream and unused by this codebase, but declared as a transitive
+# dep by esm and simpler_flash. No aarch64 wheel exists for a torch-2.8-compatible
+# version, so override it to be required only on x86_64 (drops it on arm64/GB10).
+override-dependencies = [
+    "tokenizers>=0.15,<0.21.0",
+    "torchtext; platform_machine == 'x86_64'",
+    # Stock torch 2.8 pins triton==3.4.0 (x86-only on PyPI). The cu129 index ships
+    # triton 3.3.0 for aarch64, which is the supported pairing for the cu129 torch
+    # build on arm64. Keep 3.4.0 on x86_64 (Minerva), use 3.3.0 on aarch64.
+    "triton==3.3.0; platform_machine == 'aarch64' and sys_platform == 'linux'",
+]
+
+# On aarch64 (GB10 / Grace-Blackwell) PyPI ships only a CPU-only torch 2.8 wheel.
+# Pull the CUDA-enabled aarch64 build (cu129, includes sm_120 Blackwell kernels)
+# from the PyTorch download index. The marker scopes this to arm64 Linux only so
+# the x86_64 Minerva path is unaffected (it resolves torch from PyPI as before).
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu129", marker = "platform_machine == 'aarch64' and sys_platform == 'linux'" }]
+torchvision = [{ index = "pytorch-cu129", marker = "platform_machine == 'aarch64' and sys_platform == 'linux'" }]
+torchaudio = [{ index = "pytorch-cu129", marker = "platform_machine == 'aarch64' and sys_platform == 'linux'" }]
+triton = [{ index = "pytorch-cu129", marker = "platform_machine == 'aarch64' and sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
 
 [build-system]
 requires = ["hatchling"]
